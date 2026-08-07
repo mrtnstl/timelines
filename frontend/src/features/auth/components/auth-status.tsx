@@ -8,7 +8,11 @@ export function AuthStatus() {
     return (
       <div>
         <p>Signed out</p>
-        <button onClick={() => setCounter(counter + 1)}>
+        <button
+          onClick={() => {
+            setCounter(counter + 1);
+          }}
+        >
           Sign In {counter}
         </button>
       </div>
