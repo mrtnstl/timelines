@@ -124,7 +124,7 @@ func (s *TimelineStore) Update(ctx context.Context, timeline *Timeline) error {
 
 	err := s.db.QueryRowContext(
 		ctx,
-		`UPDATE timelines SET is_published = $1, title = $2, version = version + 1
+		`UPDATE timelines SET is_published = $1, title = $2, version = version + 1, updated_at = NOW()
 		WHERE id = $3 AND version = $4
 		RETURNING version;`,
 		timeline.IsPublished,

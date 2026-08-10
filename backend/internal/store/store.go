@@ -22,12 +22,19 @@ type Store struct {
 		GetSoftDeleted(context.Context, string) ([]Timeline, error)
 		HardDelete(context.Context, string) error
 	}
-	TimelineEvents interface{}
-	Users          interface{}
+	TimelineEvents interface {
+		Create(context.Context, *TimelineEvent) error
+		GetByID(context.Context, string) (TimelineEvent, error)
+		GetByTimelineID(context.Context, string) ([]TimelineEvent, error)
+		Update(context.Context, *TimelineEvent) error
+		Delete(context.Context, string) error
+	}
+	Users interface{}
 }
 
 func NewStore(db *sql.DB) *Store {
 	return &Store{
-		Timelines: &TimelineStore{db},
+		Timelines:      &TimelineStore{db},
+		TimelineEvents: &TimelineEventStore{db},
 	}
 }
