@@ -2,27 +2,46 @@ package main
 
 import (
 	"log"
-	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/mrtnstl/timelines/internal/db"
+	"github.com/mrtnstl/timelines/internal/store"
+	"github.com/mrtnstl/timelines/internal/utils/env"
 )
 
 func main() {
-	// Create a Gin router with default middleware (logger and recovery)
-	r := gin.Default()
-
-	// Define a simple GET endpoint
-	r.GET("/ping", func(c *gin.Context) {
-		// Return JSON response
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-
-	// Start server on port 8080 (default)
-	log.Println("Server will listen on 0.0.0.0:8080")
-	// Server will listen on 0.0.0.0:8080 (localhost:8080 on Windows)
-	if err := r.Run(); err != nil {
-		log.Fatalf("failed to run server: %v", err)
+	conf := config{
+		addr:        env.GetStr("ADDR", "0.0.0.0:8080"),
+		frontendURL: env.GetStr("FRONTEND_URL", "0.0.0.0:5173"),
+		dbConf: dbConfig{
+			addr:         env.GetStr("DATABASE_URL", "postgres://user:password@localhost/dbname"),
+			maxIdleTime:  "15m",
+			maxOpenConns: 30,
+			maxIdleConns: 30,
+		},
 	}
+
+	db, err := db.New(
+		conf.dbConf.addr,
+		conf.dbConf.maxIdleTime,
+		conf.dbConf.maxOpenConns,
+		conf.dbConf.maxIdleConns,
+	)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		log.Fatal(db.Close())
+	}()
+
+	store := store.NewStore(db)
+
+	app := &application{
+		config: conf,
+		store:  *store,
+	}
+
+	r := app.init()
+
+	log.Printf("Server will listen on %s\n", conf.addr)
+	log.Fatal(app.start(r))
 }

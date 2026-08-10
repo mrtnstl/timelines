@@ -1,12 +1,14 @@
 package main
 
-type Config struct {
+type config struct {
 	addr        string
 	frontendURL string
-	db          dbConfig
-	cache       cacheConfig
+	dbConf      dbConfig
 }
 
-type dbConfig struct{}
-
-type cacheConfig struct{}
+type dbConfig struct {
+	addr         string
+	maxIdleTime  string
+	maxOpenConns int
+	maxIdleConns int
+}
