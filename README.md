@@ -14,12 +14,16 @@ Public timeline reads are cached in Redis for faster viewer performance.
   - Public publish mode is guarded by high entropy keys for relatively protected access
 - Owner-controlled allowlist for who can access the editor
 
+## Docs
+
+- Data models in [/docs/data-models.md](./docs/data-models.md)
+
 ## Build and development
 
 1. clone the repo
 
    ```bash
-   git clone REPO_URL
+   git clone https://github.com/mrtnstl/timelines
    ```
 
 2. install dependencies
@@ -37,9 +41,10 @@ Public timeline reads are cached in Redis for faster viewer performance.
    ```bash
    # backend
    cd backend
-   # to be implemented
+   make run
 
    # in a separate terminal
+
    # frontend
    cd frontend
    npm run dev
@@ -47,24 +52,45 @@ Public timeline reads are cached in Redis for faster viewer performance.
 
 4. building
 
+   by itself
+
    ```bash
    # backend
    cd backend
-   go build -o ./dist/bin ./...
+   make build
 
    # in a separate terminal
+
    # frontend
    cd frontend
    npm run build
+   ```
+
+   or containerized
+
+   ```bash
+   # backend
+   # to be implemented
+
+   # in a separate terminal
+
+   # frontend
+   docker build -t tl-frontend:test -f Dockerfile .
+   docker run --rm -p 3000:80 tl-frontend:test
    ```
 
 ## Project Structure
 
 ```text
 /
+├── .github                   # ci workflows
 ├── backend
 │   ├── cmd
-│   └── go.mod
+│   └── internal
+│       ├── db                # database connection
+│       ├── store             # database repositories
+│       └── utils
+│           └── env
 ├── docs
 │   └── architecture.md
 └── frontend
