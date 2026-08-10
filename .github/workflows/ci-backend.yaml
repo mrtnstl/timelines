@@ -38,4 +38,4 @@ jobs:
         run: go test ./...
 
       - name: Build Backend application
-        run: go build ./cmd/main.go
+        run: go build -o ./dist/bin ./cmd
