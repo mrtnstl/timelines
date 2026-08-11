@@ -20,64 +20,73 @@ Public timeline reads are cached in Redis for faster viewer performance.
 
 ## Build and development
 
-1. clone the repo
+### clone the repo
 
-   ```bash
-   git clone https://github.com/mrtnstl/timelines
-   ```
+```bash
+git clone https://github.com/mrtnstl/timelines
+```
 
-2. install dependencies
+### install dependencies
 
-   ```bash
-   cd frontend && npm ci
+```bash
+cd frontend && npm ci
 
-   cd ..
+cd ..
 
-   cd backend && go mod download
-   ```
+cd backend && go mod download
+```
 
-3. running during development
+### running during development
 
-   ```bash
-   # backend
-   cd backend
-   make run
+```bash
+# backend
+cd backend
+make dev
 
-   # in a separate terminal
+# in a separate terminal
 
-   # frontend
-   cd frontend
-   npm run dev
-   ```
+# frontend
+cd frontend
+npm run dev
+```
 
-4. building
+### building
 
-   by itself
+by itself
 
-   ```bash
-   # backend
-   cd backend
-   make build
+```bash
+# backend
+cd backend
+make build
 
-   # in a separate terminal
+# in a separate terminal
 
-   # frontend
-   cd frontend
-   npm run build
-   ```
+# frontend
+cd frontend
+npm run build
+```
 
-   or containerized
+or containerized
 
-   ```bash
-   # backend
-   # to be implemented
+```bash
+# backend
+cd backend
+docker build -t tl-backend:test -f Dockerfile .
+docker run --rm -p 8080:8080 --name timeline-backend tl-backend:test
 
-   # in a separate terminal
+# in a separate terminal
 
-   # frontend
-   docker build -t tl-frontend:test -f Dockerfile .
-   docker run --rm -p 3000:80 tl-frontend:test
-   ```
+# frontend
+cd frontend
+docker build -t tl-frontend:test -f Dockerfile .
+docker run --rm -p 3000:80 --name timeline-frontend tl-frontend:test
+```
+
+### running with Docker Compose
+
+```bash
+# to be implemented
+```
 
 ## Project Structure
 
@@ -86,7 +95,10 @@ Public timeline reads are cached in Redis for faster viewer performance.
 ├── .github                   # ci workflows
 ├── backend
 │   ├── cmd
+│   │   ├── api               # application entrypoint
+│   │   └── migrate           # database migrations
 │   └── internal
+│       ├── cache             # redis connection and repositories
 │       ├── db                # database connection
 │       ├── store             # database repositories
 │       └── utils
