@@ -11,24 +11,26 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mrtnstl/timelines/internal/cache"
 	"github.com/mrtnstl/timelines/internal/store"
 )
 
 type application struct {
 	config config
 	store  store.Store
+	cache  cache.Store
 }
 
 func (a *application) initRoutes() http.Handler {
 	r := gin.New()
-	
+
 	r.Use(gin.Recovery())
 
 	v1 := r.Group("/api/v1")
 	v1.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
-	
+
 	return r
 }
 
