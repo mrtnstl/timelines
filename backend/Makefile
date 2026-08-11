@@ -1,4 +1,4 @@
-.PHONY: fmt lint test build run
+.PHONY: fmt lint test build run dev
 
 fmt:
 	go fmt ./...
@@ -19,10 +19,13 @@ lint-q:
 	golangci-lint run --new-from-rev=HEAD~1
 
 build: fmt test lint
-	go build -o ./dist/bin ./cmd
+	go build -o ./dist/bin ./cmd/api
 
 build-force:
-	go build -o ./dist/bin ./cmd
+	go build -o ./dist/bin ./cmd/api
 
 run:
-	go run ./cmd
+	go run ./cmd/api
+
+dev:
+	air

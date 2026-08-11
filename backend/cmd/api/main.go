@@ -3,12 +3,17 @@ package main
 import (
 	"log"
 
+	"github.com/gin-gonic/gin"
 	"github.com/mrtnstl/timelines/internal/db"
 	"github.com/mrtnstl/timelines/internal/store"
 	"github.com/mrtnstl/timelines/internal/utils/env"
+
+	_ "github.com/joho/godotenv"
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
+
 	conf := config{
 		addr:        env.GetStr("ADDR", "0.0.0.0:8080"),
 		frontendURL: env.GetStr("FRONTEND_URL", "0.0.0.0:5173"),
@@ -27,10 +32,11 @@ func main() {
 		conf.dbConf.maxIdleConns,
 	)
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Println(err)
 	}
 	defer func() {
-		log.Fatal(db.Close())
+		//log.Fatal(db.Close())
 	}()
 
 	store := store.NewStore(db)
@@ -40,8 +46,7 @@ func main() {
 		store:  *store,
 	}
 
-	r := app.init()
-
-	log.Printf("Server will listen on %s\n", conf.addr)
-	log.Fatal(app.start(r))
+	if err := app.start(); err != nil {
+		log.Fatal(err)
+	}
 }
