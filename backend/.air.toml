@@ -3,7 +3,7 @@
 env_files = []
 root = "."
 testdata_dir = "testdata"
-tmp_dir = "bin"
+tmp_dir = "dist"
 
 [build]
   args_bin = []
