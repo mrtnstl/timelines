@@ -15,6 +15,11 @@ import (
 	"github.com/mrtnstl/timelines/internal/store"
 )
 
+const (
+	RouteParamKeyTimelineID   = "id"
+	QueryParamKeyIsHardDelete = "hard"
+)
+
 type application struct {
 	config config
 	store  store.Store
@@ -27,9 +32,18 @@ func (a *application) initRoutes() http.Handler {
 	r.Use(gin.Recovery())
 
 	v1 := r.Group("/api/v1")
-	v1.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
+	{
+		v1.GET("/health", a.getHealthHandler)
+		tl := v1.Group("/timelines")
+		{
+			tl.GET("", a.getTimelinesHandler)
+			tl.GET(":id", a.getTimelineByIDHandler)
+			tl.PATCH(":id", a.editTimelineHandler)
+			tl.DELETE("/:id", a.deleteTimelineHandler)
+			tl.POST("", a.validateRequest(CreateTimelineRequest{}), a.createTimelineHandler)
+		}
+		v1.GET("/p/:id", a.getPublicTimelineByIDHandler)
+	}
 
 	return r
 }

@@ -16,6 +16,5 @@ type dbConfig struct {
 
 type redisConfig struct {
 	addr     string
-	username string
 	password string
 }
