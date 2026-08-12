@@ -17,6 +17,7 @@ Public timeline reads are cached in Redis for faster viewer performance.
 ## Docs
 
 - Data models in [/docs/data-models.md](./docs/data-models.md)
+- Architecture documentation in [/docs/architecture.md](./docs/architecture.md)
 
 ## Build and development
 
@@ -50,7 +51,7 @@ cd frontend
 npm run dev
 ```
 
-### building
+### building individually
 
 by itself
 
@@ -72,20 +73,26 @@ or containerized
 # backend
 cd backend
 docker build -t tl-backend:test -f Dockerfile .
-docker run --rm -p 8080:8080 --name timeline-backend tl-backend:test
+docker run --rm -p 8080:8080 --name timelines-backend tl-backend:test
 
 # in a separate terminal
 
 # frontend
 cd frontend
 docker build -t tl-frontend:test -f Dockerfile .
-docker run --rm -p 3000:80 --name timeline-frontend tl-frontend:test
+docker run --rm -p 3000:80 --name timelines-frontend tl-frontend:test
 ```
 
-### running with Docker Compose
+### or running with Docker Compose
 
 ```bash
-# to be implemented
+# Development infra only
+docker compose --env-file .env.infra -f docker-compose.infra.yaml up -d
+docker compose --env-file .env.infra -f docker-compose.infra.yaml down
+
+# Entire app
+docker compose --env-file .env.main -f docker-compose.main.yaml up -d
+docker compose --env-file .env.main -f docker-compose.main.yaml down
 ```
 
 ## Project Structure
