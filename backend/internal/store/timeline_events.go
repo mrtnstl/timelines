@@ -14,8 +14,8 @@ type TimelineEvent struct {
 	Date        string    `json:"date"`
 	Description string    `json:"description"`
 	Image       *string   `json:"image"` // nullable
-	Serial      int64     `json:"serial"`
-	Version     int64     `json:"version"`
+	Serial      int       `json:"serial"`
+	Version     int       `json:"version"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -31,7 +31,7 @@ func (s *TimelineEventStore) Create(ctx context.Context, timelineEvent *Timeline
 	err := s.db.QueryRowContext(
 		ctx,
 		`INSERT INTO timeline_events (timeline_id, title, date, description, image, serial)
-		values ($1, $2, $3, $4, $5, $6) RETURNING id, created_at, updated_at;`,
+		values ($1, $2, $3, $4, $5, $6) RETURNING id, version, created_at, updated_at;`,
 		timelineEvent.TimelineID,
 		timelineEvent.Title,
 		timelineEvent.Date,
@@ -40,6 +40,7 @@ func (s *TimelineEventStore) Create(ctx context.Context, timelineEvent *Timeline
 		timelineEvent.Serial,
 	).Scan(
 		&timelineEvent.ID,
+		&timelineEvent.Version,
 		&timelineEvent.CreatedAt,
 		&timelineEvent.UpdatedAt,
 	)
@@ -91,7 +92,7 @@ func (s *TimelineEventStore) GetByTimelineID(ctx context.Context, timelineID str
 	rows, err := s.db.QueryContext(
 		ctx,
 		`SELECT id, timeline_id, title, date, description, image, serial, version, created_at, updated_at FROM timeline_events
-		WHERE id = $1;`,
+		WHERE timeline_id = $1;`,
 		timelineID,
 	)
 	if err != nil {
@@ -131,7 +132,7 @@ func (s *TimelineEventStore) GetByTimelineID(ctx context.Context, timelineID str
 	return timelineEvents, nil
 }
 
-func (s *TimelineEventStore) Update(ctx context.Context, timelineEvent *TimelineEvent) error {
+func (s *TimelineEventStore) Update(ctx context.Context, timelineEvent *TimelineEvent, ownerID string) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
@@ -140,7 +141,7 @@ func (s *TimelineEventStore) Update(ctx context.Context, timelineEvent *Timeline
 		`UPDATE timeline_events 
 		SET title = $1, date = $2, description = $3, image = $4, 
 		serial = $5, version = version + 1, updated_at = NOW()
-		WHERE id = $6 AND version = $7
+		WHERE id = $6 AND timeline_id = $7 AND version = $8 AND timeline_id IN (SELECT id FROM timelines WHERE owner_id = $9)
 		RETURNING version;`,
 		timelineEvent.Title,
 		timelineEvent.Date,
@@ -148,7 +149,9 @@ func (s *TimelineEventStore) Update(ctx context.Context, timelineEvent *Timeline
 		timelineEvent.Image,
 		timelineEvent.Serial,
 		timelineEvent.ID,
+		timelineEvent.TimelineID,
 		timelineEvent.Version,
+		ownerID,
 	).Scan(
 		&timelineEvent.Version,
 	)
@@ -164,14 +167,16 @@ func (s *TimelineEventStore) Update(ctx context.Context, timelineEvent *Timeline
 	return nil
 }
 
-func (s *TimelineEventStore) Delete(ctx context.Context, id string) error {
+func (s *TimelineEventStore) Delete(ctx context.Context, id, ownerID string) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	res, err := s.db.ExecContext(
 		ctx,
-		`DELETE FROM timeline_events WHERE id = $1;`,
+		`DELETE FROM timeline_events 
+		WHERE id = $1 AND timeline_id IN (SELECT id FROM timelines WHERE owner_id = $2);`,
 		id,
+		ownerID,
 	)
 	if err != nil {
 		return err
@@ -187,4 +192,23 @@ func (s *TimelineEventStore) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (s *TimelineEventStore) GetLargestSerial(ctx context.Context, timelineID string) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var largestSerial int
+	err := s.db.QueryRowContext(
+		ctx,
+		`SELECT COALESCE(MAX(serial), 0) FROM timeline_events WHERE timeline_id = $1;`,
+		timelineID,
+	).Scan(
+		&largestSerial,
+	)
+	if err != nil {
+		return 0, nil
+	}
+
+	return largestSerial, nil
 }

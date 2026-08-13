@@ -27,8 +27,9 @@ type Store struct {
 		Create(context.Context, *TimelineEvent) error
 		GetByID(context.Context, string) (TimelineEvent, error)
 		GetByTimelineID(context.Context, string) ([]TimelineEvent, error)
-		Update(context.Context, *TimelineEvent) error
-		Delete(context.Context, string) error
+		Update(context.Context, *TimelineEvent, string) error
+		Delete(context.Context, string, string) error
+		GetLargestSerial(context.Context, string) (int, error)
 	}
 	Users interface{}
 }

@@ -1,0 +1,157 @@
+package main
+
+import (
+	"errors"
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/mrtnstl/timelines/internal/store"
+)
+
+func (a *application) getEventsHandler(c *gin.Context) {
+	timelineID := c.Param(RouteParamKeyTimelineID)
+
+	timelineEvents, err := a.store.TimelineEvents.GetByTimelineID(c.Request.Context(), timelineID)
+	if err != nil {
+		a.internalServerErrorResponse(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, SuccessResponse{
+		Data: timelineEvents,
+	})
+}
+
+func (a *application) createEventHandler(c *gin.Context) {
+	timelineID := c.Param(RouteParamKeyTimelineID)
+	if timelineID == "" {
+		a.badRequestResponse(c, errors.New("'timelineID' must be specified"))
+		return
+	}
+
+	eventFromContext, ok := c.Get(CtxKeyValidatedRequest)
+	if !ok {
+		a.internalServerErrorResponse(c)
+		return
+	}
+	eventPayload, ok := eventFromContext.(*CreateEventRequest)
+	if !ok {
+		log.Println("CreateEventRequest payload type assertion error")
+		a.internalServerErrorResponse(c)
+		return
+	}
+
+	serial := eventPayload.Serial
+	if serial == nil {
+		lastSerial, err := a.store.TimelineEvents.GetLargestSerial(c.Request.Context(), timelineID)
+		if err != nil {
+			a.internalServerErrorResponse(c)
+			return
+		}
+		nextSerial := float64(lastSerial + 1)
+		serial = &nextSerial
+	}
+
+	description := ""
+	if eventPayload.Description != nil {
+		description = *eventPayload.Description
+	}
+
+	newEvent := store.TimelineEvent{
+		TimelineID:  timelineID,
+		Title:       eventPayload.Title,
+		Date:        eventPayload.Date,
+		Description: description,
+		Image:       eventPayload.Image,
+		Serial:      int(*serial),
+	}
+
+	if err := a.store.TimelineEvents.Create(c.Request.Context(), &newEvent); err != nil {
+		a.internalServerErrorResponse(c)
+		return
+	}
+
+	// TODO: check cache, invalidate or refresh if needed
+
+	c.JSON(http.StatusOK, SuccessResponse{
+		Message: fmt.Sprintf("created new event with id %s", newEvent.ID),
+		Data:    newEvent,
+	})
+}
+
+func (a *application) editEventHandler(c *gin.Context) {
+	userID, ok := c.Get("userID")
+	if !ok {
+		a.unauthorizedResponse(c)
+		return
+	}
+	userIDStr, ok := userID.(string)
+	if !ok {
+		a.unauthorizedResponse(c)
+		return
+	}
+
+	timelineID := c.Param(RouteParamKeyTimelineID)
+	eventID := c.Param(RouteParamKeyEventID)
+
+	/*
+		TODO: implement this asap
+	*/
+
+	updatedEvent := store.TimelineEvent{
+		TimelineID: timelineID,
+		ID:         eventID,
+	}
+
+	if err := a.store.TimelineEvents.Update(c.Request.Context(), &updatedEvent, userIDStr); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			a.notFoundResponse(c)
+		default:
+			a.internalServerErrorResponse(c)
+		}
+		return
+	}
+
+	// TODO: check cache
+
+	c.JSON(http.StatusOK, SuccessResponse{
+		Message: fmt.Sprintf("successfully edited event %s", eventID),
+		Data: map[string]any{
+			"new_version": updatedEvent.Version,
+		},
+	})
+}
+
+func (a *application) deleteEventHandler(c *gin.Context) {
+	userID, ok := c.Get("userID")
+	if !ok {
+		a.unauthorizedResponse(c)
+		return
+	}
+	userIDStr, ok := userID.(string)
+	if !ok {
+		a.unauthorizedResponse(c)
+		return
+	}
+
+	eventID := c.Param(RouteParamKeyEventID)
+
+	if err := a.store.TimelineEvents.Delete(c.Request.Context(), eventID, userIDStr); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			a.notFoundResponse(c)
+		default:
+			a.internalServerErrorResponse(c)
+		}
+		return
+	}
+
+	// TODO: check cache
+
+	c.JSON(http.StatusOK, SuccessResponse{
+		Message: fmt.Sprintf("deleted event %s", eventID),
+	})
+}

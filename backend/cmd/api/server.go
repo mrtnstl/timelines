@@ -19,6 +19,7 @@ const (
 	RouteParamKeyTimelineID       = "id"
 	RouteParamKeyTimelinePublicID = "publicID"
 	QueryParamKeyIsHardDelete     = "hard"
+	RouteParamKeyEventID          = "eventID"
 )
 const (
 	CtxKeyValidatedRequest = "validatedRequest"
@@ -46,6 +47,16 @@ func (a *application) initRoutes() http.Handler {
 			tl.PATCH(":id", a.validateRequest(UpdateTimelineRequest{}), a.editTimelineHandler)
 			tl.DELETE(":id", a.deleteTimelineHandler)
 			tl.POST("", a.validateRequest(CreateTimelineRequest{}), a.createTimelineHandler)
+
+			te := tl.Group("/:id/events")
+			// TODO: need a better solution for ownership checks
+			te.Use(a.verifyTimelineOwnership())
+			{
+				te.GET("", a.getEventsHandler)
+				te.POST("", a.validateRequest(CreateEventRequest{}), a.createEventHandler)
+				te.PATCH(":eventID", a.validateRequest(UpdateEventRequest{}), a.editEventHandler)
+				te.DELETE(":eventID", a.deleteEventHandler)
+			}
 		}
 		v1.GET("/p/:publicID", a.getPublicTimelineByPublicIDHandler)
 	}
