@@ -30,12 +30,14 @@ func (s *TimelineStore) Create(ctx context.Context, timeline *Timeline) error {
 	err := s.db.QueryRowContext(
 		ctx,
 		`INSERT INTO timelines (owner_id, public_id, title)
-		VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at;`,
+		VALUES ($1, $2, $3) RETURNING id, is_published, version, created_at, updated_at;`,
 		timeline.OwnerID,
 		timeline.PublicID,
 		timeline.Title,
 	).Scan(
 		&timeline.ID,
+		&timeline.IsPublished,
+		&timeline.Version,
 		&timeline.CreatedAt,
 		&timeline.UpdatedAt,
 	)
@@ -47,7 +49,7 @@ func (s *TimelineStore) Create(ctx context.Context, timeline *Timeline) error {
 	return nil
 }
 
-func (s *TimelineStore) GetByID(ctx context.Context, id string) (Timeline, error) {
+func (s *TimelineStore) GetByID(ctx context.Context, id string, ownerID string) (Timeline, error) {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
@@ -55,8 +57,9 @@ func (s *TimelineStore) GetByID(ctx context.Context, id string) (Timeline, error
 	err := s.db.QueryRowContext(
 		ctx,
 		`SELECT id, is_published, owner_id, public_id, title, version, created_at, updated_at 
-		FROM timelines WHERE id = $1 AND deleted_at IS NULL;`,
+		FROM timelines WHERE id = $1 AND owner_id = $2 AND deleted_at IS NULL;`,
 		id,
+		ownerID,
 	).Scan(
 		&timeline.ID,
 		&timeline.IsPublished,
@@ -124,10 +127,11 @@ func (s *TimelineStore) Update(ctx context.Context, timeline *Timeline) error {
 
 	err := s.db.QueryRowContext(
 		ctx,
-		`UPDATE timelines SET is_published = $1, title = $2, version = version + 1, updated_at = NOW()
-		WHERE id = $3 AND version = $4
+		`UPDATE timelines SET is_published = $1, public_id = $2, title = $3, version = version + 1, updated_at = NOW()
+		WHERE id = $4 AND version = $5
 		RETURNING version;`,
 		timeline.IsPublished,
+		timeline.PublicID,
 		timeline.Title,
 		timeline.ID,
 		timeline.Version,
@@ -237,4 +241,36 @@ func (s *TimelineStore) HardDelete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (s *TimelineStore) GetPublishedByPublicID(ctx context.Context, publicID string) (Timeline, error) {
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var timeline Timeline
+	err := s.db.QueryRowContext(
+		ctx,
+		`SELECT id, is_published, owner_id, public_id, title, version, created_at, updated_at 
+		FROM timelines WHERE is_published = TRUE AND deleted_at IS NULL AND public_id = $1;`,
+		publicID,
+	).Scan(
+		&timeline.ID,
+		&timeline.IsPublished,
+		&timeline.OwnerID,
+		&timeline.PublicID,
+		&timeline.Title,
+		&timeline.Version,
+		&timeline.CreatedAt,
+		&timeline.UpdatedAt,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return Timeline{}, ErrNotFound
+		default:
+			return Timeline{}, err
+		}
+	}
+
+	return timeline, nil
 }

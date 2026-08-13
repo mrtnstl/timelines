@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"reflect"
 
 	"github.com/gin-gonic/gin"
@@ -15,12 +14,11 @@ func (a *application) validateRequest(requestStruct any) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req := reflect.New(reqType).Interface()
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{
-				Error: "bad request",
-				Cause: err.Error(),
-			})
+			a.badRequestResponse(c, err)
 			return
 		}
+
+		c.Set(CtxKeyValidatedRequest, req)
 		c.Next()
 	}
 }

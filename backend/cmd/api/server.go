@@ -16,8 +16,12 @@ import (
 )
 
 const (
-	RouteParamKeyTimelineID   = "id"
-	QueryParamKeyIsHardDelete = "hard"
+	RouteParamKeyTimelineID       = "id"
+	RouteParamKeyTimelinePublicID = "publicID"
+	QueryParamKeyIsHardDelete     = "hard"
+)
+const (
+	CtxKeyValidatedRequest = "validatedRequest"
 )
 
 type application struct {
@@ -30,6 +34,7 @@ func (a *application) initRoutes() http.Handler {
 	r := gin.New()
 
 	r.Use(gin.Recovery())
+	r.Use(gin.Logger())
 
 	v1 := r.Group("/api/v1")
 	{
@@ -38,11 +43,11 @@ func (a *application) initRoutes() http.Handler {
 		{
 			tl.GET("", a.getTimelinesHandler)
 			tl.GET(":id", a.getTimelineByIDHandler)
-			tl.PATCH(":id", a.editTimelineHandler)
-			tl.DELETE("/:id", a.deleteTimelineHandler)
+			tl.PATCH(":id", a.validateRequest(UpdateTimelineRequest{}), a.editTimelineHandler)
+			tl.DELETE(":id", a.deleteTimelineHandler)
 			tl.POST("", a.validateRequest(CreateTimelineRequest{}), a.createTimelineHandler)
 		}
-		v1.GET("/p/:id", a.getPublicTimelineByIDHandler)
+		v1.GET("/p/:publicID", a.getPublicTimelineByPublicIDHandler)
 	}
 
 	return r
