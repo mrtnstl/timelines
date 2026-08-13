@@ -32,3 +32,9 @@ func (a *application) badRequestResponse(c *gin.Context, err error) {
 		Cause: err.Error(),
 	})
 }
+
+func (a *application) unauthorizedResponse(c *gin.Context) {
+	c.JSON(http.StatusUnauthorized, ErrorResponse{
+		Error: "unauthorized",
+	})
+}
