@@ -127,3 +127,77 @@ INSERT INTO timelines (
     NOW() - INTERVAL '1 day',
     NULL
 );
+
+-- TimelineEvent data for timeline_id c3d4e5f6-a7b8-9012-cdef-123456789012
+INSERT INTO timeline_events (
+    id,
+    timeline_id,
+    title,
+    date,
+    description,
+    image,
+    serial,
+    version,
+    created_at,
+    updated_at
+) VALUES
+(
+    'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    'c3d4e5f6-a7b8-9012-cdef-123456789012',
+    'Great-Grandparents Marriage',
+    '1898-06-12',
+    'John and Mary were married in a small village church.',
+    NULL,
+    1,
+    1,
+    NOW() - INTERVAL '29 days',
+    NOW() - INTERVAL '29 days'
+),
+(
+    'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+    'c3d4e5f6-a7b8-9012-cdef-123456789012',
+    'Birth of Grandfather',
+    '1921-03-04',
+    'Robert was born as the first child of the family.',
+    NULL,
+    2,
+    1,
+    NOW() - INTERVAL '28 days',
+    NOW() - INTERVAL '28 days'
+),
+(
+    'c3d4e5f6-a7b8-9012-cdef-234567890123',
+    'c3d4e5f6-a7b8-9012-cdef-123456789012',
+    'Immigration to America',
+    '1947-09-18',
+    'The family arrived at Ellis Island after a two-week journey.',
+    NULL,
+    3,
+    1,
+    NOW() - INTERVAL '27 days',
+    NOW() - INTERVAL '27 days'
+),
+(
+    'd4e5f6a7-b8c9-0123-def0-345678901234',
+    'c3d4e5f6-a7b8-9012-cdef-123456789012',
+    'Parents Wedding',
+    '1968-11-22',
+    'A simple ceremony held in the backyard of the family home.',
+    NULL,
+    4,
+    1,
+    NOW() - INTERVAL '26 days',
+    NOW() - INTERVAL '26 days'
+),
+(
+    'e5f6a7b8-c9d0-1234-ef01-456789012345',
+    'c3d4e5f6-a7b8-9012-cdef-123456789012',
+    'Birth of First Child',
+    '1972-07-15',
+    'The first grandchild of the family line was born.',
+    NULL,
+    5,
+    1,
+    NOW() - INTERVAL '25 days',
+    NOW() - INTERVAL '25 days'
+);

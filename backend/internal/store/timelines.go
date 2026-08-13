@@ -13,10 +13,17 @@ type Timeline struct {
 	OwnerID     string    `json:"owner_id"`
 	PublicID    string    `json:"public_id"`
 	Title       string    `json:"title"`
-	Version     int64     `json:"version"`
+	Version     int       `json:"version"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	DeletedAt   time.Time `json:"deleted_at"`
+}
+
+type PublicTimelineWithEvents struct {
+	OwnerID  string `json:"owner_id"`
+	PublicID string `json:"public_id"`
+	Title    string `json:"title"`
+	Events   string `json:"events"`
 }
 
 type TimelineStore struct {
@@ -250,18 +257,15 @@ func (s *TimelineStore) GetPublishedByPublicID(ctx context.Context, publicID str
 	var timeline Timeline
 	err := s.db.QueryRowContext(
 		ctx,
-		`SELECT id, is_published, owner_id, public_id, title, version, created_at, updated_at 
-		FROM timelines WHERE is_published = TRUE AND deleted_at IS NULL AND public_id = $1;`,
+		`SELECT id, owner_id, public_id, title
+		FROM timelines
+		WHERE is_published = TRUE AND deleted_at IS NULL AND public_id = $1;`,
 		publicID,
 	).Scan(
 		&timeline.ID,
-		&timeline.IsPublished,
 		&timeline.OwnerID,
 		&timeline.PublicID,
 		&timeline.Title,
-		&timeline.Version,
-		&timeline.CreatedAt,
-		&timeline.UpdatedAt,
 	)
 	if err != nil {
 		switch {

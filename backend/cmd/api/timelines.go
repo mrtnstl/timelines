@@ -58,7 +58,7 @@ func (a *application) editTimelineHandler(c *gin.Context) {
 		a.internalServerErrorResponse(c)
 		return
 	}
-	updateData, ok := timelineFromContext.(*UpdateTimelineRequest)
+	updatePayload, ok := timelineFromContext.(*UpdateTimelineRequest)
 	if !ok {
 		a.internalServerErrorResponse(c)
 		return
@@ -75,15 +75,15 @@ func (a *application) editTimelineHandler(c *gin.Context) {
 		Title:       existingTimeline.Title,
 		IsPublished: existingTimeline.IsPublished,
 		PublicID:    existingTimeline.PublicID,
-		Version:     updateData.Version,
+		Version:     updatePayload.Version,
 	}
 
-	if updateData.Title != "" {
-		updatedTimeline.Title = updateData.Title
+	if updatePayload.Title != "" {
+		updatedTimeline.Title = updatePayload.Title
 	}
 
-	if updateData.IsPublished != nil {
-		if existingTimeline.IsPublished && !*updateData.IsPublished {
+	if updatePayload.IsPublished != nil {
+		if existingTimeline.IsPublished && !*updatePayload.IsPublished {
 			newPublicID, err := crypto.GenTimelinePublicID()
 			if err != nil {
 				a.internalServerErrorResponse(c)
@@ -91,7 +91,7 @@ func (a *application) editTimelineHandler(c *gin.Context) {
 			}
 			updatedTimeline.PublicID = newPublicID
 		}
-		updatedTimeline.IsPublished = *updateData.IsPublished
+		updatedTimeline.IsPublished = *updatePayload.IsPublished
 	}
 
 	if err := a.store.Timelines.Update(c.Request.Context(), &updatedTimeline); err != nil {
@@ -102,6 +102,8 @@ func (a *application) editTimelineHandler(c *gin.Context) {
 		a.internalServerErrorResponse(c)
 		return
 	}
+
+	// TODO: update cache
 
 	c.JSON(http.StatusOK, SuccessResponse{
 		Message: fmt.Sprintf("successfully edited timeline %s", id),
@@ -146,6 +148,8 @@ func (a *application) deleteTimelineHandler(c *gin.Context) {
 		}
 	}
 
+	// TODO: delete from cache
+
 	c.JSON(http.StatusOK, SuccessResponse{
 		Message: fmt.Sprintf("deleted timeline %s (hard delete: %t)", id, shouldDeletePermanently),
 	})
@@ -160,7 +164,7 @@ func (a *application) createTimelineHandler(c *gin.Context) {
 		a.internalServerErrorResponse(c)
 		return
 	}
-	requestData, ok := timelineFromContext.(*CreateTimelineRequest)
+	timelinePayload, ok := timelineFromContext.(*CreateTimelineRequest)
 	if !ok {
 		a.internalServerErrorResponse(c)
 		return
@@ -173,7 +177,7 @@ func (a *application) createTimelineHandler(c *gin.Context) {
 	}
 
 	newTimeline := store.Timeline{
-		Title:    requestData.Title,
+		Title:    timelinePayload.Title,
 		OwnerID:  ownerID,
 		PublicID: fmt.Sprintf("%x", newPublicID),
 	}
@@ -190,19 +194,30 @@ func (a *application) createTimelineHandler(c *gin.Context) {
 }
 
 func (a *application) getPublicTimelineByPublicIDHandler(c *gin.Context) {
-	id := c.Param(RouteParamKeyTimelinePublicID)
+	publicID := c.Param(RouteParamKeyTimelinePublicID)
 
-	timeline, err := a.store.Timelines.GetPublishedByPublicID(c.Request.Context(), id)
+	// TODO: check redis
+
+	timeline, err := a.store.Timelines.GetPublishedByPublicID(c.Request.Context(), publicID)
 	if err != nil {
-		if errors.Is(err, store.ErrNotFound) {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
 			a.notFoundResponse(c)
-			return
+		default:
+			a.internalServerErrorResponse(c)
 		}
+		return
+	}
+	events, err := a.store.TimelineEvents.GetByTimelineID(c.Request.Context(), timeline.ID)
+	if err != nil {
 		a.internalServerErrorResponse(c)
 		return
 	}
 
 	c.JSON(http.StatusOK, SuccessResponse{
-		Data: timeline,
+		Data: map[string]any{
+			"timeline": timeline,
+			"events":   events,
+		},
 	})
 }
