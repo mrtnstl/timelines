@@ -2,8 +2,11 @@ package main
 
 import (
 	"errors"
+	"net/http"
 	"reflect"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/mrtnstl/timelines/internal/store"
 )
@@ -50,4 +53,15 @@ func (a *application) verifyTimelineOwnership() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func (a *application) corsMW() gin.HandlerFunc {
+	return cors.New(cors.Config{
+		AllowOrigins:     []string{a.config.frontendURL},
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodDelete},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           time.Hour * 12,
+	})
 }

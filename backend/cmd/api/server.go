@@ -36,6 +36,7 @@ func (a *application) initRoutes() http.Handler {
 
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
+	r.Use(a.corsMW())
 
 	v1 := r.Group("/api/v1")
 	{
