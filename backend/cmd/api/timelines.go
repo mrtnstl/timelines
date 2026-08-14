@@ -70,16 +70,10 @@ func (a *application) editTimelineHandler(c *gin.Context) {
 		return
 	}
 
-	updatedTimeline := store.Timeline{
-		ID:          existingTimeline.ID,
-		Title:       existingTimeline.Title,
-		IsPublished: existingTimeline.IsPublished,
-		PublicID:    existingTimeline.PublicID,
-		Version:     updatePayload.Version,
-	}
+	existingTimeline.Version = updatePayload.Version
 
-	if updatePayload.Title != "" {
-		updatedTimeline.Title = updatePayload.Title
+	if updatePayload.Title != nil {
+		existingTimeline.Title = *updatePayload.Title
 	}
 
 	if updatePayload.IsPublished != nil {
@@ -89,12 +83,12 @@ func (a *application) editTimelineHandler(c *gin.Context) {
 				a.internalServerErrorResponse(c)
 				return
 			}
-			updatedTimeline.PublicID = newPublicID
+			existingTimeline.PublicID = newPublicID
 		}
-		updatedTimeline.IsPublished = *updatePayload.IsPublished
+		existingTimeline.IsPublished = *updatePayload.IsPublished
 	}
 
-	if err := a.store.Timelines.Update(c.Request.Context(), &updatedTimeline); err != nil {
+	if err := a.store.Timelines.Update(c.Request.Context(), &existingTimeline); err != nil {
 		if errors.Is(err, store.ErrNotFound) {
 			a.notFoundResponse(c)
 			return
@@ -108,7 +102,7 @@ func (a *application) editTimelineHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, SuccessResponse{
 		Message: fmt.Sprintf("successfully edited timeline %s", id),
 		Data: map[string]any{
-			"new_version": updatedTimeline.Version,
+			"new_version": existingTimeline.Version,
 		},
 	})
 }

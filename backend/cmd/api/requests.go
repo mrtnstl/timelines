@@ -5,7 +5,7 @@ type CreateTimelineRequest struct {
 }
 
 type UpdateTimelineRequest struct {
-	Title       string `json:"title" binding:"max=80"`
+	Title       *string `json:"title" binding:"max=80"`
 	IsPublished *bool  `json:"is_published"`
 	Version     int    `json:"version" binding:"required"`
 }
@@ -19,10 +19,10 @@ type CreateEventRequest struct {
 }
 
 type UpdateEventRequest struct {
-	Title       string  `json:"title" binding:"required"`
-	Date        string  `json:"date" binding:"required"`
+	Title       *string  `json:"title"`
+	Date        *string  `json:"date"`
 	Description *string `json:"description"`
 	Image       *string `json:"image"`
-	Serial      int     `json:"serial" binding:"required"`
+	Serial      *int     `json:"serial"`
 	Version     int     `json:"version" binding:"required"`
 }

@@ -82,30 +82,58 @@ func (a *application) createEventHandler(c *gin.Context) {
 }
 
 func (a *application) editEventHandler(c *gin.Context) {
-	userID, ok := c.Get("userID")
-	if !ok {
+	//userID:= c.GetString("userID")
+	userID := "11111111-1111-1111-1111-111111111111"
+	if userID == "" {
 		a.unauthorizedResponse(c)
 		return
 	}
-	userIDStr, ok := userID.(string)
-	if !ok {
-		a.unauthorizedResponse(c)
-		return
-	}
-
-	timelineID := c.Param(RouteParamKeyTimelineID)
+	
+	// TODO: stricter event ownership check
+	//timelineID := c.Param(RouteParamKeyTimelineID)
 	eventID := c.Param(RouteParamKeyEventID)
 
-	/*
-		TODO: implement this asap
-	*/
-
-	updatedEvent := store.TimelineEvent{
-		TimelineID: timelineID,
-		ID:         eventID,
+	updateFromContext, ok :=c.Get(CtxKeyValidatedRequest)
+	if !ok {
+		a.internalServerErrorResponse(c)
+		return
+	}
+	updatePayload, ok := updateFromContext.(*UpdateEventRequest)
+	if !ok {
+		a.internalServerErrorResponse(c)
+		return
 	}
 
-	if err := a.store.TimelineEvents.Update(c.Request.Context(), &updatedEvent, userIDStr); err != nil {
+	existingEvent, err := a.store.TimelineEvents.GetByID(c.Request.Context(), eventID)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			a.notFoundResponse(c)
+		default:
+			a.internalServerErrorResponse(c)
+		}
+		return
+	}
+
+	existingEvent.Version = updatePayload.Version
+
+	if updatePayload.Title != nil {
+		existingEvent.Title = *updatePayload.Title
+	}
+	if updatePayload.Date != nil {
+		existingEvent.Date = *updatePayload.Date
+	}
+	if updatePayload.Description != nil {
+		existingEvent.Description = *updatePayload.Description
+	}
+	if updatePayload.Image != nil {
+		existingEvent.Image = updatePayload.Image
+	}
+	if updatePayload.Serial != nil {
+		existingEvent.Serial = *updatePayload.Serial
+	}
+
+	if err := a.store.TimelineEvents.Update(c.Request.Context(), &existingEvent, userID); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
 			a.notFoundResponse(c)
@@ -120,26 +148,22 @@ func (a *application) editEventHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, SuccessResponse{
 		Message: fmt.Sprintf("successfully edited event %s", eventID),
 		Data: map[string]any{
-			"new_version": updatedEvent.Version,
+			"new_version": existingEvent.Version,
 		},
 	})
 }
 
 func (a *application) deleteEventHandler(c *gin.Context) {
-	userID, ok := c.Get("userID")
-	if !ok {
-		a.unauthorizedResponse(c)
-		return
-	}
-	userIDStr, ok := userID.(string)
-	if !ok {
+	//userID := c.GetString("userID")
+	userID :="11111111-1111-1111-1111-111111111111"
+	if userID == "" {
 		a.unauthorizedResponse(c)
 		return
 	}
 
 	eventID := c.Param(RouteParamKeyEventID)
 
-	if err := a.store.TimelineEvents.Delete(c.Request.Context(), eventID, userIDStr); err != nil {
+	if err := a.store.TimelineEvents.Delete(c.Request.Context(), eventID, userID); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
 			a.notFoundResponse(c)
