@@ -88,12 +88,12 @@ func (a *application) editEventHandler(c *gin.Context) {
 		a.unauthorizedResponse(c)
 		return
 	}
-	
+
 	// TODO: stricter event ownership check
 	//timelineID := c.Param(RouteParamKeyTimelineID)
 	eventID := c.Param(RouteParamKeyEventID)
 
-	updateFromContext, ok :=c.Get(CtxKeyValidatedRequest)
+	updateFromContext, ok := c.Get(CtxKeyValidatedRequest)
 	if !ok {
 		a.internalServerErrorResponse(c)
 		return
@@ -155,7 +155,7 @@ func (a *application) editEventHandler(c *gin.Context) {
 
 func (a *application) deleteEventHandler(c *gin.Context) {
 	//userID := c.GetString("userID")
-	userID :="11111111-1111-1111-1111-111111111111"
+	userID := "11111111-1111-1111-1111-111111111111"
 	if userID == "" {
 		a.unauthorizedResponse(c)
 		return
