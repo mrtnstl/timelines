@@ -7,7 +7,7 @@ export function useTimelines() {
   const [timelines, setTimelines] = useState<Timeline[]>([]);
 
   useEffect(() => {
-    void listTimelines().then(setTimelines);
+    listTimelines().then((res) => setTimelines(res.data));
   }, []);
 
   return timelines;

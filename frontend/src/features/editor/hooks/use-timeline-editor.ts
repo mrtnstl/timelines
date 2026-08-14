@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { EditorDraft } from '../types/editor';
 
 const defaultDraft: EditorDraft = {
-  title: 'Untitled timeline',
+  title: '',
   events: [],
 };
 

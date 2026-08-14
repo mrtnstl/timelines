@@ -1,20 +1,36 @@
-import type { Timeline } from '../types/timeline';
+import type {
+  DeleteTimelineResponse,
+  TimelineResponse,
+  TimelinesResponse,
+} from '../types/timeline';
 
-export function listTimelines(): Promise<Timeline[]> {
-  return Promise.resolve([
+export function listTimelines(): Promise<TimelinesResponse> {
+  return fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines`)
+    .then((data) => data.json())
+    .then();
+}
+
+export function getTimeline(timelineID: string): Promise<TimelineResponse> {
+  return fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines/${timelineID}`,
+  )
+    .then((data) => data.json())
+    .then();
+}
+
+export function deleteTimeline(
+  timelineID: string,
+  isHardDelete: boolean,
+): Promise<DeleteTimelineResponse> {
+  return fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines/${timelineID}?hard=${isHardDelete ? true : false}`,
     {
-      id: 'asdasd',
-      ownerId: 'asdsa2d3ad',
-      title: 'test timeline',
-      events: [
-        {
-          id: 'a1',
-          title: 'project start',
-          date: new Date().toISOString(),
-          description: 'this marks the start of the project',
-        },
-      ],
-      isPublished: false,
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     },
-  ]);
+  )
+    .then((data) => data.json())
+    .then();
 }

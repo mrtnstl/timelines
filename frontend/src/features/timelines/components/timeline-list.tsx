@@ -1,4 +1,5 @@
 import { useTimelines } from '../hooks/use-timelines';
+import { TimelineCard } from './timeline-card';
 
 export function TimelineList() {
   const timelines = useTimelines();
@@ -6,25 +7,22 @@ export function TimelineList() {
   return (
     <section>
       <h2>Timelines</h2>
-      <p>Count: {timelines.length}</p>
+      <p>You have {timelines.length} timelines</p>
 
-      <ul>
+      <ul className="mx-2 flex flex-wrap gap-x-1 gap-y-0.5">
         {timelines.map((item) => (
-          <div key={item.id} className="border-2 p-0.5">
-            <h3>
-              {item.title} ({item.isPublished ? 'public' : 'private'})
-            </h3>
-
-            <ul className="border-t-2">
-              {item.events.map((event) => (
-                <li key={event.id} className="border-l-2 my-2">
-                  <h4>{event.title}</h4>
-                  <small>{event.date}</small>
-                  <p>{event.description}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <TimelineCard
+            key={item.id}
+            id={item.id}
+            title={item.title}
+            is_published={item.is_published}
+            owner_id={item.owner_id}
+            public_id={item.public_id}
+            version={item.version}
+            created_at={item.created_at}
+            updated_at={item.updated_at}
+            deleted_at={item.deleted_at}
+          />
         ))}
       </ul>
     </section>
