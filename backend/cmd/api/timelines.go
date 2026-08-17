@@ -28,7 +28,12 @@ func (a *application) getTimelinesHandler(c *gin.Context) {
 
 func (a *application) getTimelineByIDHandler(c *gin.Context) {
 	id := c.Param(RouteParamKeyTimelineID)
-
+	withEventsQueryParam := c.Query("with_events")
+	withEvents, err := strconv.ParseBool(withEventsQueryParam)
+	if err != nil {
+		a.badRequestResponse(c, errors.New("invalid query parameter"))
+		return
+	}
 	//ownerID from JWT
 	ownerID := "11111111-1111-1111-1111-111111111111"
 
@@ -39,6 +44,22 @@ func (a *application) getTimelineByIDHandler(c *gin.Context) {
 			return
 		}
 		a.internalServerErrorResponse(c)
+		return
+	}
+
+	if withEvents {
+		events, err := a.store.TimelineEvents.GetByTimelineID(c.Request.Context(), timeline.ID)
+		if err != nil {
+			a.internalServerErrorResponse(c)
+			return
+		}
+
+		c.JSON(http.StatusOK, SuccessResponse{
+			Data: map[string]any{
+				"timeline": timeline,
+				"events":   events,
+			},
+		})
 		return
 	}
 

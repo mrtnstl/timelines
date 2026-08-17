@@ -35,8 +35,8 @@ export function useTimelineViewer(id: string, isPublic: boolean) {
         try {
           const timeline = await getTimelineByID(id);
           setState({
-            timeline: timeline.data,
-            events: null,
+            timeline: timeline.data.timeline,
+            events: timeline.data.events,
             isLoading: false,
             error: null,
           });

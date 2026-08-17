@@ -14,7 +14,7 @@ export interface PublicTimelineResponse {
   };
 }
 
-export interface TimelineResponse {
+export interface TimelineWithEventsResponse {
   data: {
     timeline: Timeline;
     events: TimelineEvent[] | null;

@@ -1,5 +1,7 @@
-import type { TimelineResponse } from '../../timelines';
-import type { PublicTimelineResponse } from '../types/viewer';
+import type {
+  PublicTimelineResponse,
+  TimelineWithEventsResponse,
+} from '../types/viewer';
 
 export async function getTimelineByPublicID(
   publicID: string,
@@ -15,14 +17,17 @@ export async function getTimelineByPublicID(
   }
 }
 
-export async function getTimelineByID(id: string): Promise<TimelineResponse> {
+export async function getTimelineByID(
+  id: string,
+): Promise<TimelineWithEventsResponse> {
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines/${id}`,
+      `${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines/${id}?with_events=true`,
     );
     const data = await response.json();
     return data;
   } catch (err) {
+    console.log(err);
     throw err instanceof Error ? err : new Error(String(err));
   }
 }
