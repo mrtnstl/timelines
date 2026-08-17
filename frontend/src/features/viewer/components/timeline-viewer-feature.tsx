@@ -1,20 +1,19 @@
 import { useParams } from 'react-router';
 import { useTimelineViewer } from '../hooks/use-timeline-viewer';
-import { useState } from 'react';
 
-interface TimelineViewerFeatureProps {
-  isPublic: boolean;
-}
-
-export function TimelineViewerFeature({
-  isPublic,
-}: TimelineViewerFeatureProps) {
-  const { id } = useParams();
+export function TimelineViewerFeature() {
+  const { id, type } = useParams();
   if (!id) {
     return <p>Can't load timeline.</p>;
   }
-  const { isLoading, timeline, events } = useTimelineViewer(id, isPublic);
-  const [error, setError] = useState<string | null>(null);
+  const { isLoading, timeline, events, error } = useTimelineViewer(
+    id,
+    type === 'public',
+  );
+
+  if (error) {
+    return <p className="text-red-400">{error.message}</p>;
+  }
 
   if (isLoading) {
     return <p>Loading timeline...</p>;
@@ -27,7 +26,6 @@ export function TimelineViewerFeature({
   return (
     <section>
       <h1 className="text-center">{timeline.title}</h1>
-      <p></p>
       {events && (
         <ul className="flex flex-col text-center">
           {events.map((event) => (

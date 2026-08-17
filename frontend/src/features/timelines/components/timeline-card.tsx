@@ -50,8 +50,8 @@ export function TimelineCard({
           className="button-info"
           onClick={() =>
             is_published
-              ? navigate(`/timeline/${public_id}`)
-              : navigate(`/editor/edit/${id}`)
+              ? navigate(`/timeline/public/${public_id}`)
+              : navigate(`/timeline/private/${id}`)
           }
         >
           <MdPreview />

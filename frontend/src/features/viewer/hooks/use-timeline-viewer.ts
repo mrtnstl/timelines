@@ -1,32 +1,53 @@
 import { useEffect, useState } from 'react';
 
-import { getAnyTimeline, getPublicTimeline } from '../api/viewer-api';
 import type { ViewerState } from '../types/viewer';
+import { getTimelineByID, getTimelineByPublicID } from '../api/viewer-api';
 
 export function useTimelineViewer(id: string, isPublic: boolean) {
   const [state, setState] = useState<ViewerState>({
     timeline: null,
     events: null,
     isLoading: Boolean(id),
+    error: null,
   });
 
   useEffect(() => {
     if (isPublic) {
-      void getPublicTimeline(id).then((res) => {
-        setState({
-          timeline: res.data.timeline,
-          events: res.data.events,
-          isLoading: false,
-        });
-      });
+      (async () => {
+        try {
+          const timeline = await getTimelineByPublicID(id);
+          setState({
+            timeline: timeline.data.timeline,
+            events: timeline.data.events,
+            isLoading: false,
+            error: null,
+          });
+        } catch (err) {
+          setState({
+            ...state,
+            isLoading: false,
+            error: err as Error, // 100% sure this is of type Error
+          });
+        }
+      })();
     } else {
-      void getAnyTimeline(id).then((res) => {
-        setState({
-          timeline: res.data,
-          events: null,
-          isLoading: false,
-        });
-      });
+      (async () => {
+        try {
+          const timeline = await getTimelineByID(id);
+          setState({
+            timeline: timeline.data,
+            events: null,
+            isLoading: false,
+            error: null,
+          });
+        } catch (err) {
+          setState({
+            ...state,
+            isLoading: false,
+            error: err as Error, // 100% sure this is of type Error
+          });
+        }
+      })();
     }
   }, [id]);
 

@@ -5,7 +5,7 @@ export default function TimelineEditor() {
   return (
     <>
       <TimelineEditorFeature />
-      <TimelineViewerFeature isPublic />
+      <TimelineViewerFeature />
     </>
   );
 }

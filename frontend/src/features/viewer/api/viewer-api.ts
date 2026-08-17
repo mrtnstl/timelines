@@ -1,16 +1,28 @@
 import type { TimelineResponse } from '../../timelines';
 import type { PublicTimelineResponse } from '../types/viewer';
 
-export function getPublicTimeline(
+export async function getTimelineByPublicID(
   publicID: string,
 ): Promise<PublicTimelineResponse> {
-  return fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/p/${publicID}`)
-    .then((data) => data.json())
-    .then();
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/v1/p/${publicID}`,
+    );
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    throw err instanceof Error ? err : new Error(String(err));
+  }
 }
 
-export function getAnyTimeline(id: string): Promise<TimelineResponse> {
-  return fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines/${id}`)
-    .then((data) => data.json())
-    .then();
+export async function getTimelineByID(id: string): Promise<TimelineResponse> {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines/${id}`,
+    );
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    throw err instanceof Error ? err : new Error(String(err));
+  }
 }

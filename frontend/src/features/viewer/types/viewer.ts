@@ -4,6 +4,7 @@ export interface ViewerState {
   timeline: Timeline | null;
   events: TimelineEvent[] | null;
   isLoading: boolean;
+  error: Error | null;
 }
 
 export interface PublicTimelineResponse {
