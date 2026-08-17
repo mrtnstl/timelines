@@ -1,5 +1,4 @@
 import { AuthStatus } from '../../features/auth';
-import { PublishingFeature } from '../../features/publishing';
 import { TimelineList } from '../../features/timelines';
 
 export default function Dashboard() {
@@ -8,7 +7,6 @@ export default function Dashboard() {
       <h1>Dashboard</h1>
       <AuthStatus />
       <TimelineList />
-      <PublishingFeature />
     </div>
   );
 }

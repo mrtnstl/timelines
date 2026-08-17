@@ -1,5 +1,5 @@
 import { TimelineViewerFeature } from '../../features/viewer';
 
 export default function TimelineViewer() {
-  return <TimelineViewerFeature />;
+  return <TimelineViewerFeature isPublic={true} />;
 }

@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+@utility global_button {
+    @apply border rounded-lg px-1 py-1 cursor-pointer hover:translate-y-px transition-all;
+}
+
+@utility button-info {
+    @apply global_button hover:bg-blue-600;
+}
+
+@utility button-danger {
+    @apply global_button hover:bg-red-400;
+}
+
+.active {
+    @apply underline;
+}

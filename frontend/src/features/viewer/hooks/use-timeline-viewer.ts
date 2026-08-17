@@ -1,19 +1,34 @@
 import { useEffect, useState } from 'react';
 
-import { getPublicTimeline } from '../api/viewer-api';
+import { getAnyTimeline, getPublicTimeline } from '../api/viewer-api';
 import type { ViewerState } from '../types/viewer';
 
-export function useTimelineViewer(publicId?: string) {
+export function useTimelineViewer(id: string, isPublic: boolean) {
   const [state, setState] = useState<ViewerState>({
     timeline: null,
-    isLoading: Boolean(publicId),
+    events: null,
+    isLoading: Boolean(id),
   });
 
   useEffect(() => {
-    void getPublicTimeline(publicId).then((timeline) => {
-      setState({ timeline, isLoading: false });
-    });
-  }, [publicId]);
+    if (isPublic) {
+      void getPublicTimeline(id).then((res) => {
+        setState({
+          timeline: res.data.timeline,
+          events: res.data.events,
+          isLoading: false,
+        });
+      });
+    } else {
+      void getAnyTimeline(id).then((res) => {
+        setState({
+          timeline: res.data,
+          events: null,
+          isLoading: false,
+        });
+      });
+    }
+  }, [id]);
 
   return state;
 }

@@ -3,8 +3,10 @@ import { useState } from 'react';
 import type { EditorDraft } from '../types/editor';
 
 const defaultDraft: EditorDraft = {
+  timelineId: undefined,
+  is_published: undefined,
   title: '',
-  events: [],
+  version: -1,
 };
 
 export function useTimelineEditor() {

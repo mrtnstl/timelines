@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Outlet, NavLink } from 'react-router';
+import { MdMenu, MdPublic, MdPublicOff } from 'react-icons/md';
 
 export default function RootLayout() {
   const [backendHealth, setBackendHealth] = useState();
@@ -10,17 +11,22 @@ export default function RootLayout() {
       .catch(console.log);
   }, []);
   return (
-    <div className="w-screen h-screen bg-mauve-800 text-mauve-300">
+    <div className="w-screen h-screen bg-gray-950 text-gray-500">
       <nav>
         <NavLink to="/">Home</NavLink>
-        <NavLink to="/editor">Editor</NavLink>
+        <NavLink to="/editor/create">Editor</NavLink>
         <NavLink to="/dashboard">Dashboard</NavLink>
         <NavLink to="/nonexistent">NF</NavLink>
-        <a
-          className={backendHealth === 'ok' ? 'text-green-300' : 'text-red-400'}
-        >
-          {backendHealth}
+        <a>
+          {backendHealth === 'ok' ? (
+            <MdPublic className="text-green-400" />
+          ) : (
+            <MdPublicOff className="text-red-400" />
+          )}
         </a>
+        <button>
+          <MdMenu />
+        </button>
       </nav>
       <main>
         <Outlet />

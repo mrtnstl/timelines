@@ -1,9 +1,16 @@
-import type { Timeline } from '../../timelines/types/timeline';
+import type { TimelineResponse } from '../../timelines';
+import type { PublicTimelineResponse } from '../types/viewer';
 
-export function getPublicTimeline(publicId?: string): Promise<Timeline | null> {
-  if (!publicId) {
-    return Promise.resolve(null);
-  }
+export function getPublicTimeline(
+  publicID: string,
+): Promise<PublicTimelineResponse> {
+  return fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/p/${publicID}`)
+    .then((data) => data.json())
+    .then();
+}
 
-  return Promise.resolve(null);
+export function getAnyTimeline(id: string): Promise<TimelineResponse> {
+  return fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines/${id}`)
+    .then((data) => data.json())
+    .then();
 }
