@@ -3,8 +3,8 @@ import { TimelineList } from '../../features/timelines';
 
 export default function Dashboard() {
   return (
-    <div>
-      <h1>Dashboard</h1>
+    <div className="bg-slate-950">
+      <h1 className="font-faculty text-2xl">Dashboard</h1>
       <AuthStatus />
       <TimelineList />
     </div>

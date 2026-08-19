@@ -11,7 +11,7 @@ export default function RootLayout() {
       .catch(console.log);
   }, []);
   return (
-    <div className="w-screen h-screen bg-gray-950 text-gray-500">
+    <div className="flex flex-col w-screen h-screen bg-gray-950 text-gray-500">
       <nav>
         <NavLink to="/">Home</NavLink>
         <NavLink to="/editor/create">Editor</NavLink>
@@ -28,9 +28,12 @@ export default function RootLayout() {
           <MdMenu />
         </button>
       </nav>
-      <main>
+      <main className="flex-1 bg-slate-950">
         <Outlet />
       </main>
+      <footer className=" w-screen h-11 bg-emerald-950 text-gray-500">
+        hello, world!
+      </footer>
     </div>
   );
 }

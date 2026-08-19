@@ -1,4 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Faculty+Glyphic&display=swap");
 @import "tailwindcss";
+
+@theme {
+    --font-faculty: "Faculty Glyphic", serif;
+}
 
 @utility global_button {
     @apply border rounded-lg px-1 py-1 cursor-pointer hover:translate-y-px transition-all;
@@ -14,4 +19,8 @@
 
 .active {
     @apply underline;
+}
+
+#app {
+    @apply scrollbar-gutter-stable;
 }
