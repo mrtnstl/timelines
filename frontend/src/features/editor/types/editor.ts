@@ -1,8 +1,15 @@
 import type { Timeline, TimelineEvent } from '../../timelines/types/timeline';
 
 export interface EditorDraft {
-  timelineId?: string;
+  timeline_id?: string;
   is_published?: boolean;
+  title: string;
+  version: number;
+}
+
+export interface EditableTimeline {
+  id: string;
+  is_published: boolean;
   title: string;
   version: number;
 }

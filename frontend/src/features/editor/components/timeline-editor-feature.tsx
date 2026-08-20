@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
-import { useTimelineEditor } from '../hooks/use-timeline-editor';
+//import { useTimelineEditor } from '../hooks/use-timeline-editor';
 import {
   createTimeline,
   createTimelineEvent,
   getEvents,
   updateTimeline,
 } from '../api/editor-api';
-import type { CreateTimelineEventRequest } from '../types/editor';
+import type {
+  CreateTimelineEventRequest,
+  EditableTimeline,
+  EditorDraft,
+} from '../types/editor';
 import { getTimeline } from '../../timelines/api/timelines-api';
 import type { TimelineEvent } from '../../timelines';
+import { TimelineForm } from './timeline-form';
+import { EventForm } from './event-form';
 
 const defaultNewEvent: CreateTimelineEventRequest = {
   title: '',
@@ -20,12 +26,27 @@ const defaultNewEvent: CreateTimelineEventRequest = {
   serial: undefined,
 };
 
-export function TimelineEditorFeature() {
+interface TimelineEditorFeatureProps {
+  existingTimeline: EditableTimeline | null | undefined;
+  setExistingTimeline: React.Dispatch<
+    React.SetStateAction<EditableTimeline | null | undefined>
+  >;
+  draft: EditorDraft;
+  setDraft: React.Dispatch<React.SetStateAction<EditorDraft>>;
+  setEvents: React.Dispatch<
+    React.SetStateAction<TimelineEvent[] | null | undefined>
+  >;
+}
+
+export function TimelineEditorFeature({
+  existingTimeline,
+  setExistingTimeline,
+  draft,
+  setDraft,
+  setEvents,
+}: TimelineEditorFeatureProps) {
   const navigate = useNavigate();
   const { id: timelineID, mode } = useParams();
-  const { draft, setDraft } = useTimelineEditor();
-
-  const [events, setEvents] = useState<TimelineEvent[] | null>();
 
   const isCreateMode = mode === 'create';
   const isEditMode = mode === 'edit';
@@ -50,8 +71,8 @@ export function TimelineEditorFeature() {
       .then((res) => {
         if (!isActive) return;
         const timeline = res.data;
-        setDraft({
-          timelineId: timeline.id,
+        setExistingTimeline({
+          id: timeline.id,
           is_published: timeline.is_published,
           title: timeline.title,
           version: timeline.version,
@@ -98,10 +119,14 @@ export function TimelineEditorFeature() {
       }
 
       if (isEditMode && timelineID) {
-        await updateTimeline(timelineID, {
+        const updateResponse = await updateTimeline(timelineID, {
           title: draft.title.trim(),
           is_published: draft.is_published,
           version: draft.version,
+        });
+        setDraft({
+          ...draft,
+          version: updateResponse.data.new_version,
         });
       }
     } catch {
@@ -155,105 +180,44 @@ export function TimelineEditorFeature() {
   }
 
   return (
-    <section>
-      <h1>{isCreateMode ? 'Create Timeline' : 'Edit Timeline'}</h1>
+    <section className="border-r">
+      <h1 className="font-faculty text-2xl">
+        {isCreateMode ? 'Create Timeline' : 'Edit Timeline'}
+      </h1>
       {error && <p className="text-red-500">{error}</p>}
-
-      <form className="flex flex-col" onSubmit={handleSaveTimeline}>
-        <label htmlFor="tl-title">Title</label>
-        <input
-          id="tl-title"
-          type="text"
-          placeholder="title"
-          value={draft.title}
-          onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-        />
-
-        <button type="submit" disabled={isSavingTimeline}>
-          {isSavingTimeline ? 'Saving...' : 'Save Timeline'}
-        </button>
-      </form>
+      <TimelineForm
+        onSubmit={handleSaveTimeline}
+        draft={draft}
+        onTitleChange={(e) => setDraft({ ...draft, title: e.target.value })}
+        isSaving={isSavingTimeline}
+      />
 
       <button
         type="button"
         onClick={() => setShowEventEditor((v) => !v)}
         disabled={!timelineID}
+        className="global_button"
       >
         + Event
       </button>
 
       {!timelineID && <p>Save timeline first to enable event creation.</p>}
-      {events && (
+      {/*events && (
         <ul>
           {events.map((event) => (
             <li key={event.id}>{event.title}</li>
           ))}
         </ul>
-      )}
+      )*/}
       {showEventEditor && (
-        <form className="flex flex-col" onSubmit={handleSaveEvent}>
-          <h3>Event Editor</h3>
-
-          <label htmlFor="te-title">Title*</label>
-          <input
-            id="te-title"
-            type="text"
-            placeholder="title"
-            value={newEvent.title}
-            onChange={(e) =>
-              setNewEvent({ ...newEvent, title: e.target.value })
-            }
-          />
-
-          <label htmlFor="te-date">Date*</label>
-          <input
-            id="te-date"
-            type="text"
-            placeholder="date"
-            value={newEvent.date}
-            onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-          />
-
-          <label htmlFor="te-desc">Description</label>
-          <input
-            id="te-desc"
-            type="text"
-            placeholder="description"
-            value={newEvent.description ?? ''}
-            onChange={(e) =>
-              setNewEvent({
-                ...newEvent,
-                description: e.target.value || undefined,
-              })
-            }
-          />
-
-          <label htmlFor="te-image">Image</label>
-          <input
-            id="te-image"
-            type="text"
-            placeholder="image url"
-            value={newEvent.image ?? ''}
-            onChange={(e) =>
-              setNewEvent({ ...newEvent, image: e.target.value || undefined })
-            }
-          />
-
-          <label htmlFor="te-serial">Serial</label>
-          <input
-            id="te-serial"
-            type="number"
-            placeholder="0"
-            value={newEvent.serial ?? ''}
-            onChange={(e) =>
-              setNewEvent({ ...newEvent, serial: e.target.value || undefined })
-            }
-          />
-
-          <button type="submit" disabled={isSavingEvent}>
-            {isSavingEvent ? 'Saving...' : 'Save Event'}
-          </button>
-        </form>
+        <EventForm
+          onSubmit={handleSaveEvent}
+          newEvent={newEvent}
+          onInputChange={(e) =>
+            setNewEvent({ ...newEvent, [e.target.name]: e.target.value })
+          }
+          isSaving={isSavingEvent}
+        />
       )}
     </section>
   );

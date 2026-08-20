@@ -6,7 +6,7 @@ export function TimelineList() {
 
   return (
     <section>
-      <h2>Timelines</h2>
+      <h2 className="font-faculty text-xl">Timelines</h2>
       <p>You have {timelines.length} timelines</p>
 
       <ul className="mx-2 flex flex-wrap gap-x-1 gap-y-0.5">

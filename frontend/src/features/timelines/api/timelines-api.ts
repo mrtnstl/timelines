@@ -12,7 +12,7 @@ export function listTimelines(): Promise<TimelinesResponse> {
 
 export function getTimeline(timelineID: string): Promise<TimelineResponse> {
   return fetch(
-    `${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines/${timelineID}`,
+    `${import.meta.env.VITE_BACKEND_URL}/api/v1/timelines/${timelineID}?with_events=false`,
   )
     .then((data) => data.json())
     .then();
