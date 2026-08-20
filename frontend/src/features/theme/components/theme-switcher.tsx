@@ -3,7 +3,7 @@ import { useThemeContext } from '../hooks/useThemeContext';
 
 export function ThemeSwitcher() {
   const { theme, cycleTheme } = useThemeContext();
-
+  const iconSize = 24;
   return (
     <button
       onClick={cycleTheme}
@@ -11,9 +11,9 @@ export function ThemeSwitcher() {
       aria-label={`Theme mode: ${theme}. Click to cycle.`}
       title={`Theme: ${theme}`}
     >
-      {theme === 'light' && <MdLightMode />}
-      {theme === 'dark' && <MdDarkMode />}
-      {theme === 'system' && <MdSettingsBrightness />}
+      {theme === 'light' && <MdLightMode size={iconSize} />}
+      {theme === 'dark' && <MdDarkMode size={iconSize} />}
+      {theme === 'system' && <MdSettingsBrightness size={iconSize} />}
     </button>
   );
 }
