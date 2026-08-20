@@ -13,9 +13,15 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'dashboard', element: <Dashboard /> },
-      { path: 'timeline/:type/:id?', element: <TimelineViewer /> },
       { path: 'editor/:mode/:id?', element: <TimelineEditor /> },
-      { path: '*', element: <NotFound /> },
     ],
+  },
+  {
+    path: '/timeline/:type/:id?',
+    element: <TimelineViewer />,
+  },
+  {
+    path: '*',
+    element: <NotFound />,
   },
 ]);
